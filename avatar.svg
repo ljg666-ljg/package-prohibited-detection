@@ -1,46 +1,63 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#0a0e27"/>
-      <stop offset="100%" style="stop-color:#1a1f4e"/>
+    <radialGradient id="xray" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#0a1628"/>
+      <stop offset="100%" style="stop-color:#060e1a"/>
+    </radialGradient>
+    <linearGradient id="beam" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00ff88;stop-opacity:0.6"/>
+      <stop offset="100%" style="stop-color:#00ccff;stop-opacity:0.3"/>
     </linearGradient>
-    <linearGradient id="scan" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:0.8"/>
-      <stop offset="100%" style="stop-color:#a855f7;stop-opacity:0.8"/>
+    <linearGradient id="danger" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff4444"/>
+      <stop offset="100%" style="stop-color:#ff6666"/>
     </linearGradient>
   </defs>
 
-  <!-- 背景 -->
-  <rect width="200" height="200" rx="40" fill="url(#bg)"/>
-  <rect width="200" height="200" rx="40" fill="none" stroke="#00d4ff" stroke-width="2" opacity="0.4"/>
+  <!-- 背景 - 深色X光屏 -->
+  <rect width="200" height="200" rx="42" fill="url(#xray)"/>
+  <!-- X光屏幕边框 -->
+  <rect width="200" height="200" rx="42" fill="none" stroke="#00ff88" stroke-width="3" opacity="0.5"/>
+  <rect width="190" height="190" x="5" y="5" rx="38" fill="none" stroke="#00ff88" stroke-width="0.5" opacity="0.2"/>
 
-  <!-- 扫描线效果 -->
-  <line x1="0" y1="30" x2="200" y2="30" stroke="#00d4ff" stroke-width="0.5" opacity="0.15"/>
-  <line x1="0" y1="60" x2="200" y2="60" stroke="#00d4ff" stroke-width="0.5" opacity="0.15"/>
-  <line x1="0" y1="90" x2="200" y2="90" stroke="#00d4ff" stroke-width="0.5" opacity="0.15"/>
-  <line x1="0" y1="120" x2="200" y2="120" stroke="#00d4ff" stroke-width="0.5" opacity="0.15"/>
-  <line x1="0" y1="150" x2="200" y2="150" stroke="#00d4ff" stroke-width="0.5" opacity="0.15"/>
-  <line x1="0" y1="180" x2="200" y2="180" stroke="#00d4ff" stroke-width="0.5" opacity="0.15"/>
+  <!-- 扫描线 -->
+  <line x1="0" y1="0" x2="200" y2="200" stroke="url(#beam)" stroke-width="1.5" opacity="0.2"/>
+  <line x1="200" y1="0" x2="0" y2="200" stroke="url(#beam)" stroke-width="1.5" opacity="0.2"/>
 
-  <!-- 核心图标：包裹 + 检测 -->
-  <!-- 包裹盒子 -->
-  <rect x="55" y="70" width="90" height="70" rx="8" fill="none" stroke="url(#scan)" stroke-width="4"/>
-  <!-- 盒子胶带 -->
-  <line x1="100" y1="70" x2="100" y2="140" stroke="url(#scan)" stroke-width="3"/>
-  <!-- 盒子横带 -->
-  <line x1="55" y1="105" x2="145" y2="105" stroke="url(#scan)" stroke-width="3"/>
+  <!-- 包裹箱子 - X光半透风格 -->
+  <rect x="40" y="55" width="100" height="90" rx="10" fill="none" stroke="#00ff88" stroke-width="2.5" opacity="0.7"/>
+  <!-- 箱子内部透视图 -->
+  <rect x="45" y="60" width="90" height="80" rx="8" fill="#00ff88" opacity="0.08"/>
 
-  <!-- 扫描/检测标识 - 放大镜 -->
-  <circle cx="160" cy="55" r="18" fill="none" stroke="#a855f7" stroke-width="3.5"/>
-  <line x1="173" y1="68" x2="188" y2="83" stroke="#a855f7" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- 箱子里的违禁品 - 刀具 -->
+  <line x1="85" y1="60" x2="78" y2="125" stroke="#ff4444" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+  <rect x="80" y="55" width="10" height="15" rx="2" fill="none" stroke="#ff4444" stroke-width="2" opacity="0.9"/>
 
-  <!-- 左上角：AI / 神经网络节点 -->
-  <circle cx="40" cy="40" r="4" fill="#00d4ff" opacity="0.8"/>
-  <circle cx="55" cy="35" r="3" fill="#a855f7" opacity="0.6"/>
-  <circle cx="35" cy="55" r="3" fill="#00d4ff" opacity="0.6"/>
-  <line x1="40" y1="40" x2="55" y2="35" stroke="#00d4ff" stroke-width="0.8" opacity="0.4"/>
-  <line x1="40" y1="40" x2="35" y2="55" stroke="#00d4ff" stroke-width="0.8" opacity="0.4"/>
+  <!-- 箱子里的违禁品 - 打火机轮廓 -->
+  <rect x="110" y="70" width="14" height="30" rx="5" fill="none" stroke="#ff8888" stroke-width="2" opacity="0.8"/>
+  <circle cx="117" cy="65" r="5" fill="none" stroke="#ff8888" stroke-width="1.5" opacity="0.8"/>
+
+  <!-- 箱子里的违禁品 - 圆形压力罐 -->
+  <circle cx="125" cy="110" r="14" fill="none" stroke="#ff6666" stroke-width="2" opacity="0.7"/>
+
+  <!-- X光扫描光束 -->
+  <line x1="40" y1="130" x2="140" y2="130" stroke="#00ff88" stroke-width="2" opacity="0.4"/>
+  <line x1="40" y1="100" x2="140" y2="100" stroke="#00ff88" stroke-width="1" opacity="0.15"/>
+
+  <!-- 左上角定位十字 -->
+  <line x1="30" y1="25" x2="45" y2="25" stroke="#00ff88" stroke-width="1.5" opacity="0.6"/>
+  <line x1="30" y1="20" x2="30" y2="30" stroke="#00ff88" stroke-width="1.5" opacity="0.6"/>
+
+  <!-- 右上角定位十字 -->
+  <line x1="155" y1="25" x2="170" y2="25" stroke="#00ff88" stroke-width="1.5" opacity="0.6"/>
+
+  <!-- 左下角定位十字 -->
+  <line x1="30" y1="175" x2="45" y2="175" stroke="#00ff88" stroke-width="1.5" opacity="0.6"/>
+  <line x1="30" y1="170" x2="30" y2="180" stroke="#00ff88" stroke-width="1.5" opacity="0.6"/>
+
+  <!-- 右下角定位十字 -->
+  <line x1="155" y1="175" x2="170" y2="175" stroke="#00ff88" stroke-width="1.5" opacity="0.6"/>
 
   <!-- 文字 -->
-  <text x="100" y="185" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#00d4ff" font-weight="bold" opacity="0.7" letter-spacing="2">PPD · AI</text>
+  <text x="100" y="192" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#00ff88" font-weight="bold" opacity="0.6" letter-spacing="3">X-RAY · AI DETECTION</text>
 </svg>
