@@ -1,0 +1,104 @@
+﻿{% extends 'base.html' %}
+{% load static %}
+{% block title %}仪表盘 - PPD System{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-0" style="color: var(--accent-cyan);"><i class="bi bi-speedometer2"></i> 系统仪表盘</h2>
+            <p class="text-muted">包裹违禁物品检测系统运行概览</p>
+        </div>
+    </div>
+    <div class="row g-3 mb-4">
+        <div class="col-md-3"><div class="card stat-card">
+            <div class="stat-value">{{ today_detections }}</div>
+            <div class="stat-label">今日检测</div>
+        </div></div>
+        <div class="col-md-3"><div class="card stat-card">
+            <div class="stat-value">{{ total_detections }}</div>
+            <div class="stat-label">总检测次数</div>
+        </div></div>
+        <div class="col-md-3"><div class="card stat-card">
+            <div class="stat-value">{{ prohibited_count }}</div>
+            <div class="stat-label">违禁品检出</div>
+        </div></div>
+        <div class="col-md-3"><div class="card stat-card">
+            <div class="stat-value">{{ avg_time }}s</div>
+            <div class="stat-label">平均推理耗时</div>
+        </div></div>
+    </div>
+    <div class="row g-3">
+        <div class="col-md-8"><div class="card">
+            <div class="card-header"><i class="bi bi-bar-chart"></i> 检测趋势 (近7天)</div>
+            <div class="card-body"><canvas id="trendChart" height="250"></canvas></div>
+        </div></div>
+        <div class="col-md-4"><div class="card">
+            <div class="card-header"><i class="bi bi-pie-chart"></i> 检出类别分布</div>
+            <div class="card-body"><canvas id="classChart" height="250"></canvas></div>
+        </div></div>
+    </div>
+    <div class="row g-3 mt-2">
+        <div class="col-12"><div class="card">
+            <div class="card-header"><i class="bi bi-clock-history"></i> 最近检测记录</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead><tr><th>类型</th><th>文件名</th><th>检出数</th><th>用时</th><th>时间</th><th>操作</th></tr></thead>
+                        <tbody>
+                            {% for r in recent_records %}
+                            <tr>
+                                <td><span class="badge bg-secondary">{{ r.get_source_type_display }}</span></td>
+                                <td>{{ r.source_file.name|default:"-"|truncatechars:25 }}</td>
+                                <td>{{ r.total_objects }}</td>
+                                <td>{{ r.detection_time|default:"-" }}s</td>
+                                <td>{{ r.created_at|date:"m-d H:i" }}</td>
+                                <td><a href="{% url 'detection:result_detail' r.id %}" class="btn btn-sm btn-outline-primary">查看</a></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox" style="font-size:2rem;"></i>
+                                <p class="mt-2">暂无检测记录，快去<a href="{% url 'detection:upload' %}">上传图片</a>试试吧！</p>
+                            </td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div></div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+    var recentData = {{ recent_data|safe }};
+    var classDist = {{ class_dist|safe }};
+    var ctx1=document.getElementById('trendChart');
+    if(ctx1){
+        new Chart(ctx1,{type:'line',data:{
+            labels:recentData.map(function(d){return d.date}),
+            datasets:[{label:'检测次数',data:recentData.map(function(d){return d.count}),
+            borderColor:'#00d4ff',backgroundColor:'rgba(0,212,255,0.1)',fill:true,tension:0.4}]
+        },options:{responsive:true,
+            plugins:{legend:{labels:{color:'#8892b0'}}},
+            scales:{x:{ticks:{color:'#8892b0'},grid:{color:'rgba(0,212,255,0.05)'}},
+            y:{ticks:{color:'#8892b0'},grid:{color:'rgba(0,212,255,0.05)'}}}
+        }});
+    }
+    var ctx2=document.getElementById('classChart');
+    if(ctx2){
+        var labels=classDist.map(function(d){return d.class_name_cn});
+        var values=classDist.map(function(d){return d.total});
+        var colors=['#FF3838','#FF9D97','#FF701F','#FFB21D','#CFD231','#48F90A','#92CC17','#3DDB86','#1A9334','#00D4BB'];
+        new Chart(ctx2,{type:'doughnut',data:{
+            labels:labels.length?labels:['暂无数据'],
+            datasets:[{data:values.length?values:[1],
+            backgroundColor:values.length?colors.slice(0,values.length):['rgba(0,212,255,0.2)'],
+            borderColor:'#0f173c'}]
+        },options:{responsive:true,
+            plugins:{legend:{labels:{color:'#8892b0'}}}
+        }});
+    }
+});
+</script>
+{% endblock %}

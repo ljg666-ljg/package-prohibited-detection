@@ -1,0 +1,109 @@
+﻿{% extends 'base.html' %}
+{% load static %}
+{% block title %}视频检测 - PPD System{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h3 style="color: var(--accent-cyan);"><i class="bi bi-camera-video"></i> 视频检测</h3>
+    <p class="text-muted">上传视频文件进行逐帧违禁物品检测，处理完成后可下载结果视频</p>
+    <div class="row g-3">
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-upload"></i> 上传视频</div>
+                <div class="card-body">
+                    <form id="videoForm" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="upload-zone" id="videoDropZone">
+                            <i class="bi bi-film"></i>
+                            <h5>拖拽视频文件 或 点击选择</h5>
+                            <p class="text-muted small">支持 AVI / MP4 / WMV / MKV 格式</p>
+                            <input type="file" id="videoInput" name="video" accept="video/*" hidden>
+                        </div>
+                        <div id="videoFileName" class="mt-2 small text-muted"></div>
+                        <button type="submit" id="videoDetectBtn" class="btn btn-primary w-100 mt-3" disabled>
+                            <i class="bi bi-play-circle"></i> 开始处理
+                        </button>
+                    </form>
+                    <div id="videoProgress" class="mt-3" style="display:none;">
+                        <div class="text-center">
+                            <div class="spinner-border text-info mb-2"></div>
+                            <p class="text-muted small">视频处理中，请耐心等待...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-info-circle"></i> 处理结果</div>
+                <div class="card-body">
+                    <div id="videoResult" class="text-center text-muted py-4">
+                        <i class="bi bi-hourglass-split" style="font-size:3rem;"></i>
+                        <p class="mt-2">等待上传视频文件...</p>
+                    </div>
+                    <div id="videoResultInfo" style="display:none;">
+                        <div class="row text-center mb-3">
+                            <div class="col-4"><span class="detail-label">总帧数</span><br><span class="detail-value" id="vTotalFrames">-</span></div>
+                            <div class="col-4"><span class="detail-label">检出物品</span><br><span class="detail-value" id="vTotalObjs">-</span></div>
+                            <div class="col-4"><span class="detail-label">帧率</span><br><span class="detail-value" id="vFps">-</span></div>
+                        </div>
+                        <a id="vDownloadLink" href="#" class="btn btn-success w-100">
+                            <i class="bi bi-download"></i> 下载结果视频
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+    const dz=document.getElementById('videoDropZone'),fi=document.getElementById('videoInput');
+    const fn=document.getElementById('videoFileName'),btn=document.getElementById('videoDetectBtn');
+    const fm=document.getElementById('videoForm');
+    dz.addEventListener('click',()=>fi.click());
+    dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over')});
+    dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
+    dz.addEventListener('drop',e=>{
+        e.preventDefault();dz.classList.remove('drag-over');
+        if(e.dataTransfer.files.length){fi.files=e.dataTransfer.files;updateName()}
+    });
+    fi.addEventListener('change',updateName);
+    function updateName(){
+        if(fi.files.length){fn.textContent=fi.files[0].name;btn.disabled=false}
+        else{fn.textContent='';btn.disabled=true}
+    }
+    fm.addEventListener('submit',async e=>{
+        e.preventDefault();if(!fi.files.length)return;
+        btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-border-sm"></span> 处理中...';
+        document.getElementById('videoProgress').style.display='block';
+        document.getElementById('videoResult').style.display='none';
+        document.getElementById('videoResultInfo').style.display='none';
+        const fd=new FormData();
+        fd.append('video',fi.files[0]);
+        fd.append('csrfmiddlewaretoken',document.querySelector('[name=csrfmiddlewaretoken]').value);
+        try{
+            const r=await fetch('/api/detect/video/',{method:'POST',body:fd});
+            const d=await r.json();
+            document.getElementById('videoProgress').style.display='none';
+            if(d.success){
+                document.getElementById('videoResultInfo').style.display='block';
+                document.getElementById('vTotalFrames').textContent=d.total_frames;
+                document.getElementById('vTotalObjs').textContent=d.total_objects;
+                document.getElementById('vFps').textContent=d.fps;
+                document.getElementById('vDownloadLink').href=d.result_video_url;
+            }else{
+                document.getElementById('videoResult').style.display='block';
+                document.getElementById('videoResult').innerHTML='<p class="text-danger">处理失败: '+d.error+'</p>';
+            }
+        }catch(err){
+            document.getElementById('videoProgress').style.display='none';
+            document.getElementById('videoResult').style.display='block';
+            document.getElementById('videoResult').innerHTML='<p class="text-danger">请求失败: '+err.message+'</p>';
+        }
+        finally{btn.disabled=false;btn.innerHTML='<i class="bi bi-play-circle"></i> 开始处理'}
+    });
+});
+</script>
+{% endblock %}

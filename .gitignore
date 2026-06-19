@@ -1,0 +1,15 @@
+﻿venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+db.sqlite3
+media/
+models/*.pt
+models/*.onnx
+staticfiles/
+*.log
+*.exe
+logs/
+Font/
+migrations/__pycache__/

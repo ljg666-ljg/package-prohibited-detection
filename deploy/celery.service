@@ -1,0 +1,18 @@
+﻿# Systemd 服务文件 — Celery Worker
+# 放在服务器的 /etc/systemd/system/ppd_celery.service
+
+[Unit]
+Description=PPD Detection System - Celery Worker
+After=network.target redis-server.service
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/ppd_detection
+EnvironmentFile=/opt/ppd_detection/.env
+ExecStart=/opt/ppd_detection/venv/bin/celery -A config worker -l info -P solo
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,54 @@
+﻿{% extends 'base.html' %}
+{% load static %}
+{% block title %}实时摄像 - PPD System{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h3 style="color: var(--accent-cyan);">
+        <i class="bi bi-webcam"></i> 摄像头实时检测
+        <span class="pulse-dot ms-2" id="statusDot" style="display:none;"></span>
+    </h3>
+    <p class="text-muted">使用浏览器摄像头进行实时违禁物品检测（帧率取决于推理速度）</p>
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="camera-container">
+                <video id="cameraVideo" autoplay playsinline muted></video>
+                <canvas id="cameraCanvas" style="display:none;"></canvas>
+                <canvas id="overlayCanvas"></canvas>
+                <div class="camera-overlay">
+                    <div class="corner corner-tl"></div><div class="corner corner-tr"></div>
+                    <div class="corner corner-bl"></div><div class="corner corner-br"></div>
+                </div>
+            </div>
+            <div class="mt-2 d-flex gap-2">
+                <button id="startCameraBtn" class="btn btn-primary"><i class="bi bi-play-circle"></i> 开启摄像头</button>
+                <button id="stopCameraBtn" class="btn btn-danger" disabled><i class="bi bi-stop-circle"></i> 停止</button>
+                <span class="ms-auto text-muted small align-self-center">
+                    帧率: <span id="fpsDisplay" style="color:var(--accent-cyan);">0</span> FPS
+                </span>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-list-ul"></i> 实时检出</div>
+                <div class="card-body p-0" style="max-height:400px;overflow-y:auto;">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead><tr><th>类别</th><th>置信度</th></tr></thead>
+                        <tbody id="realtimeDetections">
+                            <tr><td colspan="2" class="text-center text-muted py-3">等待摄像头开启...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header"><i class="bi bi-bar-chart"></i> 检出统计</div>
+                <div class="card-body">
+                    <canvas id="realtimeChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/camera.js' %}"></script>
+{% endblock %}

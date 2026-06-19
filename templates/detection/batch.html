@@ -1,0 +1,114 @@
+﻿{% extends 'base.html' %}
+{% load static %}
+{% block title %}批量检测 - PPD System{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h3 style="color: var(--accent-cyan);"><i class="bi bi-images"></i> 批量图片检测</h3>
+    <p class="text-muted">一次上传多张图片，批量进行违禁物品检测</p>
+    <div class="row g-3">
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-cloud-upload"></i> 上传图片</div>
+                <div class="card-body">
+                    <form id="batchForm" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="upload-zone" id="batchDropZone">
+                            <i class="bi bi-cloud-arrow-up"></i>
+                            <h5>拖拽多张图片 或 点击选择</h5>
+                            <p class="text-muted small">支持同时选择多个 JPG/PNG/BMP 文件</p>
+                            <input type="file" id="batchFileInput" name="images" accept="image/*" multiple hidden>
+                        </div>
+                        <div id="batchFileList" class="mt-2 small text-muted"></div>
+                        <div class="row mt-3">
+                            <div class="col-6">
+                                <label class="form-label small">置信度</label>
+                                <input type="range" class="form-range" id="batchConf" min="0.1" max="0.9" step="0.05" value="0.25">
+                                <span id="batchConfVal" class="small text-muted">0.25</span>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small">IoU</label>
+                                <input type="range" class="form-range" id="batchIou" min="0.3" max="0.9" step="0.05" value="0.7">
+                                <span id="batchIouVal" class="small text-muted">0.7</span>
+                            </div>
+                        </div>
+                        <button type="submit" id="batchDetectBtn" class="btn btn-primary w-100 mt-2" disabled>
+                            <i class="bi bi-search"></i> 开始批量检测
+                        </button>
+                    </form>
+                    <div id="batchProgress" class="mt-3" style="display:none;">
+                        <div class="progress"><div class="progress-bar" id="batchProgressBar"></div></div>
+                        <p class="text-center small text-muted mt-1"><span id="batchProgressText">0/0</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-list-check"></i> 批量检测结果</div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead><tr><th>#</th><th>文件名</th><th>检出数</th><th>耗时</th><th>操作</th></tr></thead>
+                            <tbody id="batchResultBody">
+                                <tr><td colspan="5" class="text-center text-muted py-4">等待上传检测...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+    const dz=document.getElementById('batchDropZone');
+    const fi=document.getElementById('batchFileInput');
+    const fl=document.getElementById('batchFileList');
+    const btn=document.getElementById('batchDetectBtn');
+    const fm=document.getElementById('batchForm');
+    const cs=document.getElementById('batchConf'),cv=document.getElementById('batchConfVal');
+    const iu=document.getElementById('batchIou'),iv=document.getElementById('batchIouVal');
+    if(cs)cs.addEventListener('input',()=>cv.textContent=cs.value);
+    if(iu)iu.addEventListener('input',()=>iv.textContent=iu.value);
+    dz.addEventListener('click',()=>fi.click());
+    dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over')});
+    dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
+    dz.addEventListener('drop',e=>{
+        e.preventDefault();dz.classList.remove('drag-over');
+        if(e.dataTransfer.files.length){fi.files=e.dataTransfer.files;updateList()}
+    });
+    fi.addEventListener('change',updateList);
+    function updateList(){
+        let names=[];for(let f of fi.files)names.push(f.name);
+        fl.textContent=names.length+' 个文件: '+names.slice(0,5).join(', ')+(names.length>5?' ...':'');
+        btn.disabled=names.length===0;
+    }
+    fm.addEventListener('submit',async e=>{
+        e.preventDefault();if(!fi.files.length)return;
+        btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-border-sm"></span> 检测中...';
+        document.getElementById('batchProgress').style.display='block';
+        const fd=new FormData();
+        for(let f of fi.files)fd.append('images',f);
+        fd.append('conf',cs.value);fd.append('iou',iu.value);
+        fd.append('csrfmiddlewaretoken',document.querySelector('[name=csrfmiddlewaretoken]').value);
+        try{
+            const r=await fetch('/api/detect/batch/',{method:'POST',body:fd});
+            const d=await r.json();
+            if(d.success){
+                const tb=document.getElementById('batchResultBody');
+                tb.innerHTML=d.results.map((x,i)=>'<tr>'+
+                    '<td>'+(i+1)+'</td><td>'+x.filename+'</td>'+
+                    '<td>'+(x.total_objects||0)+'</td><td>'+x.total_time+'s</td>'+
+                    '<td>'+(x.error?'<span class="text-danger">'+x.error+'</span>':
+                    '<a href="/result/'+x.record_id+'/" class="btn btn-sm btn-outline-primary">查看</a>')+'</td></tr>'
+                ).join('');
+            }
+        }catch(err){alert('请求失败: '+err.message)}
+        finally{btn.disabled=false;btn.innerHTML='<i class="bi bi-search"></i> 开始批量检测';
+        document.getElementById('batchProgress').style.display='none';}
+    });
+});
+</script>
+{% endblock %}

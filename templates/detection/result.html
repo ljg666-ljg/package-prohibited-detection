@@ -1,0 +1,86 @@
+﻿{% extends 'base.html' %}
+{% load static %}
+{% block title %}检测结果 - PPD System{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'detection:dashboard' %}">首页</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'detection:history' %}">历史记录</a></li>
+            <li class="breadcrumb-item active">检测详情</li>
+        </ol>
+    </nav>
+
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-eye"></i> 检测结果</span>
+                    {% if record.total_objects > 0 %}
+                    <span class="badge badge-detected">{{ record.total_objects }} 个违禁品</span>
+                    {% else %}
+                    <span class="badge badge-safe">安全</span>
+                    {% endif %}
+                </div>
+                <div class="card-body text-center">
+                    {% if record.result_image %}
+                    <div class="result-image-container">
+                        <img src="{{ record.result_image.url }}" alt="检测结果" style="max-width:100%;border-radius:8px;">
+                    </div>
+                    {% else %}
+                    <p class="text-muted py-5">无结果图片</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-info-circle"></i> 检测信息</div>
+                <div class="card-body">
+                    <table class="table table-sm mb-0">
+                        <tr><td class="detail-label">来源类型</td><td class="detail-value">{{ record.get_source_type_display }}</td></tr>
+                        <tr><td class="detail-label">状态</td><td>{{ record.get_status_display }}</td></tr>
+                        <tr><td class="detail-label">推理耗时</td><td class="detail-value">{{ record.detection_time|default:"-" }}s</td></tr>
+                        <tr><td class="detail-label">检出数量</td><td class="detail-value">{{ record.total_objects }}</td></tr>
+                        <tr><td class="detail-label">检测时间</td><td>{{ record.created_at|date:"Y-m-d H:i:s" }}</td></tr>
+                    </table>
+                </div>
+            </div>
+            {% if record.result_video %}
+            <div class="card mt-3">
+                <div class="card-header"><i class="bi bi-download"></i> 视频下载</div>
+                <div class="card-body">
+                    <a href="{{ record.result_video.url }}" class="btn btn-success w-100">
+                        <i class="bi bi-download"></i> 下载结果视频
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if boxes %}
+    <div class="card mt-3">
+        <div class="card-header"><i class="bi bi-table"></i> 检测目标详情</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead><tr><th>#</th><th>类别</th><th>置信度</th><th>xmin</th><th>ymin</th><th>xmax</th><th>ymax</th></tr></thead>
+                    <tbody>
+                        {% for box in boxes %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td><span class="badge badge-detected">{{ box.class_name_cn }}</span></td>
+                            <td style="font-family:'JetBrains Mono',monospace;">{% widthratio box.confidence 1 100 %}%</td>
+                            <td>{{ box.xmin }}</td><td>{{ box.ymin }}</td>
+                            <td>{{ box.xmax }}</td><td>{{ box.ymax }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
